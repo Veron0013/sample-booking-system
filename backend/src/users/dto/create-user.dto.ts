@@ -1,5 +1,11 @@
 import { UserType } from '@/generated/prisma/client';
-import { IsEmail, IsEnum, IsString, MinLength } from 'class-validator';
+import {
+  IsEmail,
+  IsEnum,
+  IsOptional,
+  IsString,
+  MinLength,
+} from 'class-validator';
 
 export class CreateUserDto {
   @IsString()
@@ -14,6 +20,7 @@ export class CreateUserDto {
   @IsEnum(UserType)
   type: UserType;
 
+  @IsOptional()
   @IsString()
-  photo?: string;
+  photo: string;
 }
