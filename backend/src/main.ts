@@ -22,6 +22,5 @@ async function bootstrap() {
   const url = await app.getUrl();
 
   console.log(`Backend published at: ${url}`);
-  console.log(`Backend published at: ${process.env.DATABASE_URL}`);
 }
 bootstrap();
