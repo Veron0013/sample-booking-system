@@ -2,7 +2,7 @@
 import { IsOptional, IsString, IsInt, Min, IsIn } from 'class-validator';
 import { Transform } from 'class-transformer';
 
-export class QueryBookingDto {
+export class QueryUserDto {
   @IsOptional()
   @IsString()
   @Transform(({ value }) => value.trim())

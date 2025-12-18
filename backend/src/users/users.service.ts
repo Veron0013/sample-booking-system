@@ -4,7 +4,9 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserType } from '@/generated/prisma/enums';
-import { User } from '@/generated/prisma/client';
+import { User, Prisma } from '@/generated/prisma/client';
+import { UserDataType } from '@/types/user-list.type';
+import { QueryUserDto } from './dto/query-user.dto';
 
 @Injectable()
 export class UsersService {
@@ -30,8 +32,46 @@ export class UsersService {
     });
   }
 
-  async findAll(): Promise<User[]> {
-    return this.prisma.user.findMany({ where: { type: UserType.BUSINESS } });
+  async findAll(id: string, query: QueryUserDto): Promise<UserDataType> {
+    const { search, sortName, page = 1, limit = 10 } = query;
+
+    const where: Prisma.UserWhereInput = { type: UserType.BUSINESS };
+
+    if (search) {
+      where.name = {
+        contains: search,
+        mode: 'insensitive',
+      };
+    }
+
+    const orderBy: Prisma.UserOrderByWithRelationInput = {};
+
+    if (sortName) orderBy.name = sortName;
+
+    const pageNum = Number(page) || 1;
+    const limitNum = Number(limit) || 10;
+
+    const skip = (pageNum - 1) * limitNum;
+    const take = limitNum;
+
+    const [items, total] = await Promise.all([
+      this.prisma.user.findMany({
+        where,
+        skip,
+        take,
+        orderBy,
+      }),
+
+      this.prisma.user.count({ where }),
+    ]);
+
+    return {
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+      items,
+    };
   }
 
   //findAll(type?: UserType) {
