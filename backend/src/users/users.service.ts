@@ -4,15 +4,15 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '@/prisma/prisma.service';
 import { UserType } from '@/generated/prisma/enums';
-import { User, Prisma } from '@/generated/prisma/client';
-import { UserDataType } from '@/types/user-list.type';
+import { Prisma } from '@/generated/prisma/client';
+import { PublicUser, UserDataType } from '@/types/user-list.type';
 import { QueryUserDto } from './dto/query-user.dto';
 
 @Injectable()
 export class UsersService {
   constructor(private prisma: PrismaService) {}
 
-  async createUser(dto: CreateUserDto): Promise<User> {
+  async createUser(dto: CreateUserDto): Promise<PublicUser> {
     const exists = await this.prisma.user.findUnique({
       where: { email: dto.email },
     });
@@ -23,13 +23,18 @@ export class UsersService {
 
     const hashedPassword = await bcrypt.hash(dto.password, 10);
 
-    return await this.prisma.user.create({
+    const user = await this.prisma.user.create({
       data: {
         ...dto,
         password: hashedPassword,
         photo: dto.photo || '',
       },
     });
+
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password, createdAt, updatedAt, ...safeUser } = user;
+
+    return safeUser;
   }
 
   async findAll(id: string, query: QueryUserDto): Promise<UserDataType> {
@@ -44,9 +49,9 @@ export class UsersService {
       };
     }
 
-    const orderBy: Prisma.UserOrderByWithRelationInput = {};
-
-    if (sortName) orderBy.name = sortName;
+    const orderBy = sortName
+      ? ({ name: sortName } satisfies Prisma.UserOrderByWithRelationInput)
+      : undefined;
 
     const pageNum = Number(page) || 1;
     const limitNum = Number(limit) || 10;
@@ -60,6 +65,7 @@ export class UsersService {
         skip,
         take,
         orderBy,
+        omit: { password: true },
       }),
 
       this.prisma.user.count({ where }),
@@ -67,35 +73,33 @@ export class UsersService {
 
     return {
       total,
-      page,
-      limit,
+      page: pageNum,
+      limit: limitNum,
       totalPages: Math.ceil(total / limit),
       items,
     };
   }
 
-  //findAll(type?: UserType) {
-  //  return this.prisma.user.findMany({
-  //    where: type ? { type } : undefined,
-  //  });
-  //}
-
-  async findOne(id: string): Promise<User | null> {
-    return this.prisma.user.findUnique({ where: { id } });
+  async findOne(id: string): Promise<PublicUser | null> {
+    return this.prisma.user.findUnique({
+      where: { id },
+      omit: { password: true },
+    });
   }
 
-  async update(id: string, data: UpdateUserDto): Promise<User> {
+  async update(id: string, data: UpdateUserDto): Promise<PublicUser> {
     if (data.password?.trim()) {
       data.password = await bcrypt.hash(data.password.trim(), 10);
     }
 
     return this.prisma.user.update({
       where: { id },
+      omit: { password: true },
       data,
     });
   }
 
-  async remove(id: string): Promise<User> {
-    return this.prisma.user.delete({ where: { id } });
+  async remove(id: string): Promise<PublicUser> {
+    return this.prisma.user.delete({ where: { id }, omit: { password: true } });
   }
 }

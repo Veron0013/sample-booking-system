@@ -5,9 +5,10 @@ import { UsersModule } from './users/users.module';
 import { BookingModule } from './booking/booking.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { LoggerModule } from './common/logger/logger.module';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [PrismaModule, UsersModule, BookingModule, LoggerModule],
+  imports: [PrismaModule, UsersModule, BookingModule, LoggerModule, AuthModule],
   controllers: [AppController],
   providers: [AppService],
 })

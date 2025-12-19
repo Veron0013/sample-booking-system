@@ -5,5 +5,7 @@ export type UserDataType = {
   page: number;
   limit: number;
   totalPages: number;
-  items: User[];
+  items: PublicUser[];
 };
+
+export type PublicUser = Omit<User, 'password' | 'createdAt' | 'updatedAt'>;
