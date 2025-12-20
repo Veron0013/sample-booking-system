@@ -1,4 +1,4 @@
-import { User } from '@/generated/prisma/client';
+import { User } from 'generated/prisma/client';
 
 export type UserDataType = {
   total: number;
@@ -8,4 +8,7 @@ export type UserDataType = {
   items: PublicUser[];
 };
 
-export type PublicUser = Omit<User, 'password' | 'createdAt' | 'updatedAt'>;
+export type PublicUser = Omit<
+  User,
+  'password' | 'createdAt' | 'updatedAt' | 'isVerified'
+>;

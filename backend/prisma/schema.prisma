@@ -4,15 +4,10 @@
 // Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
 // Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
 
-//generator client {
-//  provider = "prisma-client"
-//  output   = "../src/generated/prisma"
-//}
-
 generator client {
   provider = "prisma-client"
-  output = "./client"
-  moduleFormat = "esm"
+  output   = "../generated/prisma"
+  moduleFormat = "cjs"
 }
 
 datasource db {
@@ -26,19 +21,25 @@ enum UserType {
 }
 
 model User {
-  id        String   @id @default(uuid())
-  name      String
-  email     String   @unique
-  password  String
-  photo     String
-  type      UserType
+  id         String   @id @default(uuid())
+  name       String
+  email      String   @unique
+  password   String
+  phone      String?
+
+  photo      String?
+  isVerified Boolean  @default(false)
+  type       UserType @default(CLIENT)
 
   clientBookings   Booking[] @relation("ClientBookings")
   businessBookings Booking[] @relation("BusinessBookings")
 
+  session    Session? @relation("UserSession")
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
 
 model Booking {
   id         String   @id @default(uuid())
@@ -53,4 +54,18 @@ model Booking {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+}
+
+model Session {
+  id          String   @id @default(uuid())
+  userId      String   @unique
+  refreshHash String
+  expiresAt   DateTime
+
+  user        User     @relation("UserSession", fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([expiresAt])
 }

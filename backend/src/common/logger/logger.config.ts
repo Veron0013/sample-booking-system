@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-assignment */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 import { Params } from 'nestjs-pino';
 
 export const loggerConfig: Params = {
@@ -23,7 +25,7 @@ export const loggerConfig: Params = {
           url: req.url,
           //params: req.params,
           //query: req.raw?.query,
-          //body: req.raw?.body,
+          body: req.raw?.body,
         };
       },
       res(res) {

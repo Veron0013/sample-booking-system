@@ -1,12 +1,12 @@
 import { ConflictException, Injectable } from '@nestjs/common';
-import * as bcrypt from 'bcrypt';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
-import { PrismaService } from '@/prisma/prisma.service';
-import { UserType } from '@/generated/prisma/enums';
-import { Prisma } from '@/generated/prisma/client';
-import { PublicUser, UserDataType } from '@/types/user-list.type';
+import { PrismaService } from '../prisma/prisma.service';
+import { UserType } from '../../generated/prisma/enums';
+import { Prisma } from '../../generated/prisma/client';
+import { PublicUser, UserDataType } from '../types/user-list.type';
 import { QueryUserDto } from './dto/query-user.dto';
+import { hashPassword } from 'src/utils/bcrypt.util';
 
 @Injectable()
 export class UsersService {
@@ -21,7 +21,7 @@ export class UsersService {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(dto.password, 10);
+    const hashedPassword = await hashPassword(dto.password);
 
     const user = await this.prisma.user.create({
       data: {
@@ -29,12 +29,17 @@ export class UsersService {
         password: hashedPassword,
         photo: dto.photo || '',
       },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        photo: true,
+        type: true,
+        phone: true,
+      },
     });
 
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const { password, createdAt, updatedAt, ...safeUser } = user;
-
-    return safeUser;
+    return user;
   }
 
   async findAll(id: string, query: QueryUserDto): Promise<UserDataType> {
@@ -65,7 +70,14 @@ export class UsersService {
         skip,
         take,
         orderBy,
-        omit: { password: true },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          photo: true,
+          type: true,
+          phone: true,
+        },
       }),
 
       this.prisma.user.count({ where }),
@@ -83,23 +95,47 @@ export class UsersService {
   async findOne(id: string): Promise<PublicUser | null> {
     return this.prisma.user.findUnique({
       where: { id },
-      omit: { password: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        photo: true,
+        type: true,
+        phone: true,
+      },
     });
   }
 
   async update(id: string, data: UpdateUserDto): Promise<PublicUser> {
     if (data.password?.trim()) {
-      data.password = await bcrypt.hash(data.password.trim(), 10);
+      data.password = await hashPassword(data.password.trim());
     }
 
     return this.prisma.user.update({
       where: { id },
-      omit: { password: true },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        photo: true,
+        type: true,
+        phone: true,
+      },
       data,
     });
   }
 
   async remove(id: string): Promise<PublicUser> {
-    return this.prisma.user.delete({ where: { id }, omit: { password: true } });
+    return this.prisma.user.delete({
+      where: { id },
+      select: {
+        id: true,
+        name: true,
+        email: true,
+        photo: true,
+        type: true,
+        phone: true,
+      },
+    });
   }
 }
