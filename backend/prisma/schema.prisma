@@ -59,7 +59,7 @@ model Booking {
 model Session {
   id          String   @id @default(uuid())
   userId      String   @unique
-  refreshHash String
+  refreshHash String   @unique
   expiresAt   DateTime
 
   user        User     @relation("UserSession", fields: [userId], references: [id], onDelete: Cascade)

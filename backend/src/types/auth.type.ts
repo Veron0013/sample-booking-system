@@ -1,6 +1,7 @@
 import { PickType } from '@nestjs/mapped-types';
 import { User } from 'generated/prisma/client';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { Request } from 'express';
 
 export type DataToken = {
   access_token: string;
@@ -13,7 +14,11 @@ export class DataCredentials extends PickType(CreateUserDto, [
 ] as const) {}
 
 export type JwtPayload = {
-  sub: string; // userId
+  sub: User['id'];
   email: User['email'];
-  type: 'USER' | 'ADMIN'; // або enum
+};
+
+export type JwtData = {
+  userId: User['id'];
+  email: User['email'];
 };

@@ -1,4 +1,8 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import {
+  ForbiddenException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'generated/prisma/client';
@@ -54,7 +58,10 @@ export class AuthService {
   async initTokensAndSession(user: PublicUser): Promise<DataToken> {
     const tokens = await this.initTokens(user.id, user.email);
 
-    await this.sessionService.createUserSession(user.id, tokens.refresh_token);
+    await this.sessionService.createUpdateUserSession(
+      user.id,
+      tokens.refresh_token,
+    );
 
     return tokens;
   }
@@ -72,6 +79,18 @@ export class AuthService {
     return await this.initTokensAndSession(user);
   }
 
-  async logOut() {}
-  async refreshTokens() {}
+  async logOut(id: string) {
+    await this.sessionService.remove(id);
+  }
+
+  async refreshTokens(id: string, refreshToken: string) {
+    const currentUser = await this.userService.findOne(id);
+
+    if (!currentUser)
+      throw new UnauthorizedException('Login failed: User not found');
+
+    await this.sessionService.checkSession(currentUser.id, refreshToken);
+
+    return await this.initTokensAndSession(currentUser);
+  }
 }
