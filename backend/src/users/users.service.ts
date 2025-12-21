@@ -1,12 +1,17 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { PrismaService } from '../prisma/prisma.service';
 import { UserType } from '../../generated/prisma/enums';
 import { Prisma } from '../../generated/prisma/client';
-import { PublicUser, UserDataType } from '../types/user-list.type';
+import { PublicUser, UserDataType } from '../types/user.type';
 import { QueryUserDto } from './dto/query-user.dto';
-import { hashPassword } from 'src/utils/bcrypt.util';
+import { hashPassword, isPasswordsEqual } from 'src/utils/bcrypt.util';
+import { DataCredentials } from 'src/types/auth.type';
 
 @Injectable()
 export class UsersService {
@@ -106,6 +111,20 @@ export class UsersService {
     });
   }
 
+  async getValidUser(data: DataCredentials): Promise<PublicUser> {
+    const user = await this.prisma.user.findUnique({
+      where: { email: data.email },
+    });
+
+    if (!user) throw new UnauthorizedException('User not found');
+
+    const isValid = await isPasswordsEqual(data.password, user.password);
+
+    if (!isValid) throw new UnauthorizedException('Wrong password');
+
+    return user;
+  }
+
   async update(id: string, data: UpdateUserDto): Promise<PublicUser> {
     if (data.password?.trim()) {
       data.password = await hashPassword(data.password.trim());
@@ -126,16 +145,23 @@ export class UsersService {
   }
 
   async remove(id: string): Promise<PublicUser> {
-    return this.prisma.user.delete({
-      where: { id },
-      select: {
-        id: true,
-        name: true,
-        email: true,
-        photo: true,
-        type: true,
-        phone: true,
-      },
-    });
+    const [user] = await this.prisma.$transaction([
+      this.prisma.user.delete({
+        where: { id },
+        select: {
+          id: true,
+          name: true,
+          email: true,
+          photo: true,
+          type: true,
+          phone: true,
+        },
+      }),
+      this.prisma.session.deleteMany({
+        where: { userId: id },
+      }),
+    ]);
+
+    return user;
   }
 }

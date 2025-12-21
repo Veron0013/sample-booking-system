@@ -7,6 +7,7 @@ import {
   Param,
   Delete,
   Query,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -17,10 +18,16 @@ import { QueryUserDto } from './dto/query-user.dto';
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
-  @Post()
-  create(@Body() createUserDto: CreateUserDto) {
-    return this.usersService.createUser(createUserDto);
-  }
+  //@UseGuards(AuthGuard)
+  //@Get('me')
+  //getMe(@Req() req) {
+  //  return this.usersService.getPublicUser(req.user.sub);
+  //}
+
+  //@Post()
+  //create(@Body() createUserDto: CreateUserDto) {
+  //  return this.usersService.createUser(createUserDto);
+  //}
 
   @Get()
   findAll(@Param('id') id: string, @Query() query: QueryUserDto) {

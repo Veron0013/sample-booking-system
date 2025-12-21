@@ -12,13 +12,3 @@ export type PublicUser = Omit<
   User,
   'password' | 'createdAt' | 'updatedAt' | 'isVerified'
 >;
-
-export type DataTokens = {
-  access_token: string;
-  refresh_token: string;
-};
-
-export type DataCredentials = {
-  email: string;
-  password: string;
-};
