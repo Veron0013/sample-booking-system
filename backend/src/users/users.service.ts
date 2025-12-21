@@ -112,6 +112,7 @@ export class UsersService {
   }
 
   async getValidUser(data: DataCredentials): Promise<PublicUser> {
+    //console.log('getValidUser', data);
     const user = await this.prisma.user.findUnique({
       where: { email: data.email },
     });

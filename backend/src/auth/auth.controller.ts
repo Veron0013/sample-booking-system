@@ -1,6 +1,7 @@
 import { Body, Controller, ForbiddenException, Post } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
+import { DataCredentials } from 'src/types/auth.type';
 
 @Controller('auth')
 export class AuthController {
@@ -17,8 +18,8 @@ export class AuthController {
   }
 
   @Post('/login')
-  logIn() {
-    return this.authService.logIn();
+  logIn(@Body() dataCredentials: DataCredentials) {
+    return this.authService.logIn(dataCredentials);
   }
 
   @Post('/logout')

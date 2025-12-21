@@ -67,6 +67,7 @@ export class AuthService {
 
   async logIn(data: DataCredentials) {
     const user = await this.userService.getValidUser(data);
+    //console.log('user', user);
 
     return await this.initTokensAndSession(user);
   }
