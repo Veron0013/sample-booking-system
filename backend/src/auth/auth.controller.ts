@@ -11,8 +11,8 @@ import { AuthService } from './auth.service';
 import { CreateUserDto } from 'src/users/dto/create-user.dto';
 import { DataCredentials } from 'src/types/auth.type';
 import { User } from 'generated/prisma/client';
-import { AtGuard, RtGuard } from './guards';
-import { GetCurrentUser } from 'src/common/decorators';
+import { RtGuard } from './guards';
+import { GetCurrentUser, Public } from 'src/common/decorators';
 
 interface refreshToken {
   refresh_token: string;
@@ -22,19 +22,21 @@ interface refreshToken {
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
+  @Public()
   @Post('/signup')
   @HttpCode(HttpStatus.CREATED)
   async signUp(@Body() dto: CreateUserDto) {
     await this.authService.signUp(dto);
   }
 
+  @Public()
   @Post('/signin')
   @HttpCode(HttpStatus.OK)
   logIn(@Body() dataCredentials: DataCredentials) {
     return this.authService.logIn(dataCredentials);
   }
 
-  @UseGuards(AtGuard)
+  //@UseGuards(AtGuard)
   @Post('/logout')
   @HttpCode(HttpStatus.OK)
   logOut(@GetCurrentUser('userId') userId: User['id']) {
@@ -42,6 +44,7 @@ export class AuthController {
     return this.authService.logOut(userId);
   }
 
+  @Public()
   @UseGuards(RtGuard)
   @Post('/refresh')
   @HttpCode(HttpStatus.OK)

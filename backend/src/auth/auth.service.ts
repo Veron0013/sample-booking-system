@@ -1,8 +1,4 @@
-import {
-  ForbiddenException,
-  Injectable,
-  UnauthorizedException,
-} from '@nestjs/common';
+import { Injectable, UnauthorizedException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { User } from 'generated/prisma/client';
@@ -49,8 +45,8 @@ export class AuthService {
       ),
     ]);
 
-    if (!access_token || !refresh_token)
-      throw new ForbiddenException('Access denied');
+    //if (!access_token || !refresh_token)
+    //  throw new ForbiddenException('Access denied');
 
     return { access_token, refresh_token };
   }
